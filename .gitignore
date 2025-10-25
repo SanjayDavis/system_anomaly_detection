@@ -1,0 +1,37 @@
+# Data files (large, should not be committed)
+*.csv
+*.log
+windows.log
+labeled_logs.csv
+predictions.log
+
+# Model files (large, should not be committed)
+*.pkl
+model.pkl
+*.joblib
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
