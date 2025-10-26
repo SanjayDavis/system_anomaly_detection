@@ -13,7 +13,7 @@ You now have a **complete, production-ready ML pipeline** for classifying Window
 | `prepare_data.py` | Stream logs, auto-label, save to CSV | ~5KB |
 | `train_model.py` | Train ML models (SVM, RF, LR, Ensemble) | ~8KB |
 | `monitor.py` | Real-time monitoring & batch processing | ~8KB |
-| `log_checker.py` | Automatic log checking module | ~3KB |
+| `log_checker.py` | Automatic log scanning module | ~4KB |
 | `config.py` | Configuration file | ~2KB |
 | `test_pipeline.py` | Validation & testing suite | ~5KB |
 | `requirements.txt` | Python dependencies | <1KB |
@@ -119,7 +119,7 @@ python monitor.py --mode monitor --interval 2
 
 ### Mode 3: Programmatic (Integration)
 ```python
-from log_checker import predict_log_severity
+11. Integrate predictions: `from log_checker import predict_log_severity`
 
 # Single prediction
 severity = predict_log_severity("ERROR: System crash")  # → "CRITICAL"

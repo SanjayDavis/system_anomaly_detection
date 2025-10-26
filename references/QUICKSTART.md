@@ -206,7 +206,7 @@ Review the auto-labeling keywords in `config.py`
 1. **Read the README.md** for detailed documentation
 2. **Adjust config.py** for your specific log format
 3. **Review predictions.log** to check accuracy
-4. **Integrate with your monitoring system** using `log_checker.py`
+2. **Integrate with your monitoring system** using `log_checker.py`
 
 ---
 

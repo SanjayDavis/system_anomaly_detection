@@ -9,7 +9,7 @@ This document contains all the code for the Windows log classification pipeline 
 1. [prepare_data.py](#prepare_datepy) - Stream & auto-label logs
 2. [train_model.py](#train_modelpy) - Train ML models
 3. [monitor.py](#monitorpy) - Real-time monitoring
-4. [log_checker.py](#log_checkerpy) - Automatic log checking utility
+4. [log_checker.py](#log_checkerpy) - Automatic log scanning module
 5. [config.py](#configpy) - Configuration
 6. [test_pipeline.py](#test_pipelinepy) - Validation tests
 7. [requirements.txt](#requirementstxt) - Dependencies
@@ -716,13 +716,13 @@ if __name__ == '__main__':
 
 ## log_checker.py
 
-Utility module for predictions.
+Automatic log scanning and problem detection module. Scans Windows system or custom log files using trained ML model.
 
 ```python
 """
 log_checker.py
-Utility module providing the predict_log_severity function.
-Can be imported in other scripts for programmatic usage.
+Automatic log scanning and problem detection module.
+Can be imported for programmatic log checking usage.
 """
 
 import pickle
@@ -1298,4 +1298,3 @@ python test_pipeline.py
 ---
 
 End of Code Reference Document
-

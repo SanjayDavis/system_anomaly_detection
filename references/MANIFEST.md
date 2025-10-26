@@ -17,7 +17,7 @@
 │   ├── prepare_data.py          🌊 Stream logs, auto-label, write CSV
 │   ├── train_model.py           🤖 Train ML models, create ensemble
 │   ├── monitor.py               📡 Real-time/batch prediction
-│   └── log_checker.py         🔮 Reusable automatic log checking module
+│   └── log_checker.py           � Automatic log scanning module
 │
 ├── CONFIGURATION & TESTING
 │   ├── config.py                ⚙️  Hyperparameters & settings
@@ -149,13 +149,16 @@ python monitor.py --mode monitor --interval 2
 
 ---
 
-#### `log_checker.py` (129 lines)
-**Purpose**: Reusable automatic log checking module for integration  
-**Main Function**: `predict_log_severity(log_line, model_path='model.pkl')`  
-**Returns**: 'CRITICAL', 'WARNING', or 'NORMAL'  
-**Additional Functions**:
-- `get_model_info(model_path)`: Get model metadata
-- `predict_batch(log_lines, model_path)`: Batch predictions
+#### `log_checker.py` (441 lines)
+**Purpose**: Automatic log scanning and problem detection module  
+**Input**: Windows Event Logs or custom log files  
+**Output**: Detailed analysis reports with CRITICAL and WARNING issues  
+**Key Features**:
+  - Scans Windows Event Viewer (System/Application logs)
+  - Scans custom log files (with argument support)
+  - Applies trained ML model for severity classification
+  - Generates comprehensive reports
+  - Supports real-time and batch modes
 
 **Usage**:
 ```python

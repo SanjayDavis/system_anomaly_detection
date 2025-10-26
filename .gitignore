@@ -5,6 +5,11 @@ windows.log
 labeled_logs.csv
 predictions.log
 
+# Report files (generated analysis)
+reports/
+*.txt
+system_log_analysis_*.txt
+
 # Model files (large, should not be committed)
 *.pkl
 model.pkl

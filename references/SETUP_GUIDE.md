@@ -12,7 +12,7 @@ Your production-ready ML pipeline is complete! Here's what you have:
 - ✅ `prepare_data.py` - Stream logs, auto-label
 - ✅ `train_model.py` - Train ML models  
 - ✅ `monitor.py` - Real-time/batch processing
-- ✅ `log_checker.py` - Automatic log checking module
+- ✅ `log_checker.py` - Automatic log checking and scanning
 
 ### **Configuration** (2 files)
 - ✅ `config.py` - Hyperparameters
@@ -146,7 +146,7 @@ Press `Ctrl+C` to stop.
 
 ---
 
-### Option C: Use in Your Code
+#### Option C: Use in Your Code
 
 ```python
 from log_checker import predict_log_severity
@@ -229,7 +229,7 @@ Initial Files:
 ├── prepare_data.py          → Stream & label
 ├── train_model.py           → Train models
 ├── monitor.py               → Predictions
-├── log_checker.py          → Utility
+├── log_checker.py           → Utility
 ├── config.py                → Settings
 ├── test_pipeline.py         → Tests
 └── requirements.txt         → Dependencies

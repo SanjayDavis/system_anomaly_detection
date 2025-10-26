@@ -16,8 +16,8 @@ This project processes enormous log files efficiently by:
 ```
 ├── prepare_data.py          # Stream logs, auto-label, write to CSV
 ├── train_model.py           # Train ML models and create ensemble
-├── monitor.py               # Real-time log monitoring and batch processing
-├── log_predictor.py         # Reusable prediction module
+├── monitor.py               # Real-time monitoring and batch processing
+├── log_checker.py           # Automatic log scanning and checking
 ├── requirements.txt         # Python dependencies
 ├── README.md               # This file
 ├── windows.log             # Your 26GB log file (not tracked)
@@ -204,10 +204,10 @@ CRITICAL,CRITICAL: Database engine terminated unexpectedly
 
 ## 💻 Using the Prediction Function Programmatically
 
-### Option 1: Import from `log_predictor.py`
+### Option 1: Import from `log_checker.py`
 
 ```python
-from log_predictor import predict_log_severity
+from log_checker import predict_log_severity
 
 # Single prediction
 severity = predict_log_severity("ERROR: System failure")
@@ -373,11 +373,13 @@ python train_model.py
   - Alert counter
   - Auto-rotates on file truncation
 
-### `log_predictor.py`
-- **Purpose:** Reusable prediction module
+### `log_checker.py`
+- **Purpose:** Automatic log scanning and checking module
 - **Main Function:** `predict_log_severity(log_line, model_path)`
 - **Returns:** 'CRITICAL', 'WARNING', or 'NORMAL'
 - **Features:**
+  - Scans Windows Event Viewer logs
+  - Scans custom log files
   - Model caching for performance
   - Batch prediction support
   - Model info retrieval
@@ -401,7 +403,7 @@ Day 2+:
     - Writes all predictions to predictions.log
   
   Option C (Programmatic):
-    - from log_predictor import predict_log_severity
+    - from log_checker import predict_log_severity
     - severity = predict_log_severity("ERROR: system crash")
 ```
 
