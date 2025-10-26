@@ -42,24 +42,45 @@ class LogScanner:
             return pickle.load(f)
     
     def predict_severity(self, log_line):
-        """Predict severity of single log line"""
+        """Predict severity of single log line (supports GPU ensemble)"""
         try:
             features = self.vectorizer.transform([log_line])
             
-            # Use XGBoost if available
-            try:
-                import xgboost as xgb
-                X_dense = features.toarray()
-                dmatrix = xgb.DMatrix(X_dense)
-                pred = self.ensemble['xgb_model'].predict(dmatrix)[0]
-                severity_score = int(np.clip(np.round(pred), 0, 2))
-            except:
-                # Fallback to RandomForest
+            # Check if GPU ensemble model
+            if isinstance(self.ensemble, dict) and 'models' in self.ensemble:
+                # GPU Ensemble: Weighted voting
+                models = self.ensemble['models']
+                weights = self.ensemble['weights']
+                
+                # Convert to dense for gradient boosting models
+                features_dense = features.toarray()
+                
+                # Weighted voting
+                votes = np.zeros(3)
+                for model, weight in zip(models, weights):
+                    pred = model.predict(features_dense)[0]
+                    votes[pred] += weight
+                
+                severity_score = np.argmax(votes)
+            
+            # Use SVC model (primary model in ensemble)
+            elif 'svc_model' in self.ensemble and self.ensemble['svc_model'] is not None:
+                pred = self.ensemble['svc_model'].predict(features)
+                severity_score = pred[0]
+            # Fallback to RF if available
+            elif 'rf_model' in self.ensemble and self.ensemble['rf_model'] is not None:
                 pred = self.ensemble['rf_model'].predict(features)
                 severity_score = pred[0]
+            # If ensemble itself is a model
+            elif hasattr(self.ensemble, 'predict'):
+                pred = self.ensemble.predict(features)
+                severity_score = pred[0]
+            else:
+                severity_score = 0  # Default to NORMAL
             
             return severity_score
-        except:
+        except Exception as e:
+            logger.debug(f"Prediction error: {e}")
             return 0  # Default to NORMAL
     
     def scan_windows_event_logs(self):
@@ -154,14 +175,14 @@ class LogScanner:
                     
                     if severity == 'CRITICAL':
                         problems_found['CRITICAL'].append({
-                            'message': line.strip(),
-                            'file': file_path,
+                            'message': line.strip(),  # Store full message
+                            'file': os.path.basename(file_path),
                             'line_number': line_num
                         })
                     elif severity == 'WARNING':
                         problems_found['WARNING'].append({
-                            'message': line.strip(),
-                            'file': file_path,
+                            'message': line.strip(),  # Store full message
+                            'file': os.path.basename(file_path),
                             'line_number': line_num
                         })
             
@@ -262,12 +283,17 @@ class LogScanner:
         if all_critical:
             logger.warning(f"\n🔴 CRITICAL PROBLEMS FOUND: {len(all_critical)}")
             logger.warning("-" * 80)
-            for i, issue in enumerate(all_critical[:15], 1):
-                logger.warning(f"{i}. {issue.get('message', 'Unknown')[:100]}")
+            for i, issue in enumerate(all_critical[:50], 1):  # Show up to 50 issues
+                logger.warning(f"\n[{i}] CRITICAL ISSUE:")
+                logger.warning(f"    Message: {issue.get('message', 'Unknown')}")
+                if 'line_number' in issue:
+                    logger.warning(f"    Line Number: {issue['line_number']}")
                 if 'file' in issue:
-                    logger.warning(f"   File: {issue['file']}")
+                    logger.warning(f"    File: {issue['file']}")
                 elif 'log_type' in issue:
-                    logger.warning(f"   Source: {issue['log_type']} (Event ID: {issue.get('event_id', 'N/A')})")
+                    logger.warning(f"    Source: {issue['log_type']} (Event ID: {issue.get('event_id', 'N/A')})")
+                    if 'timestamp' in issue:
+                        logger.warning(f"    Timestamp: {issue['timestamp']}")
         else:
             logger.info("✓ No critical problems detected")
         
@@ -275,12 +301,17 @@ class LogScanner:
         if all_warnings:
             logger.warning(f"\n🟡 WARNINGS FOUND: {len(all_warnings)}")
             logger.warning("-" * 80)
-            for i, issue in enumerate(all_warnings[:15], 1):
-                logger.warning(f"{i}. {issue.get('message', 'Unknown')[:100]}")
+            for i, issue in enumerate(all_warnings[:50], 1):  # Show up to 50 issues
+                logger.warning(f"\n[{i}] WARNING:")
+                logger.warning(f"    Message: {issue.get('message', 'Unknown')}")
+                if 'line_number' in issue:
+                    logger.warning(f"    Line Number: {issue['line_number']}")
                 if 'file' in issue:
-                    logger.warning(f"   File: {issue['file']}")
+                    logger.warning(f"    File: {issue['file']}")
                 elif 'log_type' in issue:
-                    logger.warning(f"   Source: {issue['log_type']}")
+                    logger.warning(f"    Source: {issue['log_type']}")
+                    if 'timestamp' in issue:
+                        logger.warning(f"    Timestamp: {issue['timestamp']}")
         else:
             logger.info("✓ No warnings detected")
         
