@@ -1,9 +1,3 @@
-"""
-log_checker.py
-Automatic Log Scanner & Problem Detector
-Scans Windows system for logs, applies ML model, and reports problems found
-Run with: python log_checker.py [model_path]
-"""
 
 import os
 import pickle
@@ -21,10 +15,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class LogScanner:
-    """Automatically scan system logs and detect problems"""
     
     def __init__(self, model_path='model_gpu.pkl'):
-        """Initialize scanner with trained model"""
         self.model_path = model_path
         logger.info(f"Loading model: {model_path}")
         self.model_package = self._load_model()
@@ -34,7 +26,6 @@ class LogScanner:
         logger.info(f"✓ Model loaded successfully")
         
     def _load_model(self):
-        """Load trained model"""
         if not os.path.exists(self.model_path):
             raise FileNotFoundError(f"Model not found: {self.model_path}")
         
@@ -42,49 +33,43 @@ class LogScanner:
             return pickle.load(f)
     
     def predict_severity(self, log_line):
-        """Predict severity of single log line (supports GPU ensemble)"""
         try:
             features = self.vectorizer.transform([log_line])
-            
-            # Check if GPU ensemble model
+
             if isinstance(self.ensemble, dict) and 'models' in self.ensemble:
-                # GPU Ensemble: Weighted voting
+
                 models = self.ensemble['models']
                 weights = self.ensemble['weights']
-                
-                # Convert to dense for gradient boosting models
+
                 features_dense = features.toarray()
-                
-                # Weighted voting
+
                 votes = np.zeros(3)
                 for model, weight in zip(models, weights):
                     pred = model.predict(features_dense)[0]
                     votes[pred] += weight
                 
                 severity_score = np.argmax(votes)
-            
-            # Use SVC model (primary model in ensemble)
+
             elif 'svc_model' in self.ensemble and self.ensemble['svc_model'] is not None:
                 pred = self.ensemble['svc_model'].predict(features)
                 severity_score = pred[0]
-            # Fallback to RF if available
+
             elif 'rf_model' in self.ensemble and self.ensemble['rf_model'] is not None:
                 pred = self.ensemble['rf_model'].predict(features)
                 severity_score = pred[0]
-            # If ensemble itself is a model
+
             elif hasattr(self.ensemble, 'predict'):
                 pred = self.ensemble.predict(features)
                 severity_score = pred[0]
             else:
-                severity_score = 0  # Default to NORMAL
+                severity_score = 0
             
             return severity_score
         except Exception as e:
             logger.debug(f"Prediction error: {e}")
-            return 0  # Default to NORMAL
+            return 0
     
     def scan_windows_event_logs(self):
-        """Scan Windows Event Viewer logs for problems"""
         logger.info("=" * 80)
         logger.info("SCANNING WINDOWS EVENT LOGS FOR PROBLEMS")
         logger.info("=" * 80)
@@ -107,7 +92,7 @@ class LogScanner:
                     
                     event_count = 0
                     for event in events:
-                        if event_count > 500:  # Limit to last 500 events per log
+                        if event_count > 500:
                             break
                         
                         try:
@@ -152,7 +137,6 @@ class LogScanner:
         return problems_found
     
     def scan_custom_log_file(self, file_path):
-        """Scan a custom log file for problems"""
         logger.info("=" * 80)
         logger.info(f"SCANNING CUSTOM LOG FILE: {file_path}")
         logger.info("=" * 80)
@@ -175,13 +159,13 @@ class LogScanner:
                     
                     if severity == 'CRITICAL':
                         problems_found['CRITICAL'].append({
-                            'message': line.strip(),  # Store full message
+                            'message': line.strip(),
                             'file': os.path.basename(file_path),
                             'line_number': line_num
                         })
                     elif severity == 'WARNING':
                         problems_found['WARNING'].append({
-                            'message': line.strip(),  # Store full message
+                            'message': line.strip(),
                             'file': os.path.basename(file_path),
                             'line_number': line_num
                         })
@@ -194,7 +178,6 @@ class LogScanner:
         
         return problems_found
 
-        """Scan common log files on system"""
         logger.info("\n" + "=" * 80)
         logger.info("SCANNING COMMON LOG FILES")
         logger.info("=" * 80)
@@ -216,13 +199,13 @@ class LogScanner:
                 
                 logger.info(f"\nScanning pattern: {pattern[:50]}...")
                 
-                for log_file in log_files[:20]:  # Limit to first 20 matches per pattern
+                for log_file in log_files[:20]:
                     if not os.path.isfile(log_file):
                         continue
                     
                     try:
                         with open(log_file, 'r', encoding='utf-8', errors='ignore') as f:
-                            lines = f.readlines()[-200:]  # Last 200 lines
+                            lines = f.readlines()[-200:]
                         
                         for line in lines:
                             if len(line.strip()) < 3:
@@ -258,7 +241,6 @@ class LogScanner:
         return problems_found
     
     def generate_report(self, problems_event, problems_files):
-        """Generate EXTREMELY detailed problem report with all metadata"""
         logger.info("\n" + "=" * 80)
         logger.info("COMPREHENSIVE SYSTEM LOG ANALYSIS REPORT")
         logger.info("=" * 80)
@@ -270,20 +252,17 @@ class LogScanner:
         logger.info(f"Model Accuracy: 99.99%")
         logger.info(f"Features Analyzed: 1,000 dimensions")
         logger.info("")
-        
-        # Merge problems
+
         all_critical = problems_event['CRITICAL'] + problems_files['CRITICAL']
         all_warnings = problems_event['WARNING'] + problems_files['WARNING']
-        
-        # Remove duplicates
+
         all_critical = list({p['message']: p for p in all_critical}.values())
         all_warnings = list({p['message']: p for p in all_warnings}.values())
-        
-        # Critical problems
+
         if all_critical:
             logger.warning(f"\n🔴 CRITICAL PROBLEMS FOUND: {len(all_critical)}")
             logger.warning("-" * 80)
-            for i, issue in enumerate(all_critical[:50], 1):  # Show up to 50 issues
+            for i, issue in enumerate(all_critical[:50], 1):
                 logger.warning(f"\n[{i}] CRITICAL ISSUE:")
                 logger.warning(f"    Message: {issue.get('message', 'Unknown')}")
                 if 'line_number' in issue:
@@ -296,12 +275,11 @@ class LogScanner:
                         logger.warning(f"    Timestamp: {issue['timestamp']}")
         else:
             logger.info("✓ No critical problems detected")
-        
-        # Warning problems
+
         if all_warnings:
             logger.warning(f"\n🟡 WARNINGS FOUND: {len(all_warnings)}")
             logger.warning("-" * 80)
-            for i, issue in enumerate(all_warnings[:50], 1):  # Show up to 50 issues
+            for i, issue in enumerate(all_warnings[:50], 1):
                 logger.warning(f"\n[{i}] WARNING:")
                 logger.warning(f"    Message: {issue.get('message', 'Unknown')}")
                 if 'line_number' in issue:
@@ -314,8 +292,7 @@ class LogScanner:
                         logger.warning(f"    Timestamp: {issue['timestamp']}")
         else:
             logger.info("✓ No warnings detected")
-        
-        # Summary
+
         logger.info("\n" + "=" * 80)
         logger.info(f"SUMMARY")
         logger.info("=" * 80)
@@ -334,24 +311,18 @@ class LogScanner:
         }
 
 def main():
-    """Main function: Scan system or custom log file and report problems"""
-    
-    # Parse arguments
-    # Usage: python log_checker.py [model_path] [log_file_path]
-    # Or: python log_checker.py [log_file_path]  (uses default model)
-    # Or: python log_checker.py  (scans system logs)
-    
+
     model_path = 'model_gpu.pkl'
     log_file_path = None
     
     if len(sys.argv) > 1:
-        # Check if first argument is a file that exists (log file)
+
         if os.path.isfile(sys.argv[1]):
             log_file_path = sys.argv[1]
         else:
-            # First argument is model path
+
             model_path = sys.argv[1]
-            # Check if there's a second argument for log file
+
             if len(sys.argv) > 2 and os.path.isfile(sys.argv[2]):
                 log_file_path = sys.argv[2]
     
@@ -369,22 +340,19 @@ def main():
         scanner = LogScanner(model_path)
         
         if log_file_path:
-            # Scan custom log file
+
             logger.info("\n[Phase 1/1] Scanning custom log file...")
             problems_event = {'CRITICAL': [], 'WARNING': [], 'scanned': 0}
             problems_files = scanner.scan_custom_log_file(log_file_path)
         else:
-            # Scan system logs (original behavior)
+
             logger.info("\n[Phase 1/1] Scanning Windows Event Logs...")
             problems_event = scanner.scan_windows_event_logs()
             problems_files = {'CRITICAL': [], 'WARNING': [], 'scanned': 0}
-        
-        # Generate report
+
         logger.info("\n[Phase 2/2] Generating report...")
         report = scanner.generate_report(problems_event, problems_files)
-        
-        # Save report to file - organized by log file/source
-        # Create reports folder if it doesn't exist
+
         os.makedirs('reports', exist_ok=True)
         report_file = f"reports/system_log_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
         with open(report_file, 'w', encoding='utf-8') as f:
@@ -396,28 +364,24 @@ def main():
             f.write(f"Username: {os.environ.get('USERNAME', 'Unknown')}\n")
             f.write(f"System: {os.environ.get('OS', 'Windows')}\n")
             f.write("\n")
-            
-            # Organize issues by source/file
+
             event_log_issues = [p for p in report['critical_issues'] + report['warning_issues'] if 'log_type' in p]
             file_log_issues = [p for p in report['critical_issues'] + report['warning_issues'] if 'file' in p]
-            
-            # Group event logs by type
+
             event_logs_by_type = {}
             for issue in event_log_issues:
                 log_type = issue.get('log_type', 'Unknown')
                 if log_type not in event_logs_by_type:
                     event_logs_by_type[log_type] = []
                 event_logs_by_type[log_type].append(issue)
-            
-            # Group file logs by source
+
             file_logs_by_source = {}
             for issue in file_log_issues:
                 source = issue.get('file', 'Unknown')
                 if source not in file_logs_by_source:
                     file_logs_by_source[source] = []
                 file_logs_by_source[source].append(issue)
-            
-            # Display EVENT LOG SOURCES
+
             if event_logs_by_type:
                 f.write("EVENT LOG SOURCES\n")
                 f.write("=" * 100 + "\n\n")
@@ -438,8 +402,7 @@ def main():
                             f.write(f"   Time: {issue.get('timestamp', 'Unknown')}\n")
                         f.write("\n")
                     f.write("\n")
-            
-            # Display FILE LOG SOURCES
+
             if file_logs_by_source:
                 f.write("FILE LOG SOURCES\n")
                 f.write("=" * 100 + "\n\n")
@@ -457,8 +420,7 @@ def main():
                         f.write(f"{i}. {severity} {issue.get('message', 'Unknown')[:150]}\n")
                         f.write("\n")
                     f.write("\n")
-            
-            # MODEL ANALYSIS SECTION
+
             f.write("\n")
             f.write("=" * 100 + "\n")
             f.write("MODEL ANALYSIS\n")

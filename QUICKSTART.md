@@ -1,369 +1,226 @@
-# Windows Log Analysis System - Quick Start Guide# 🚀 QUICK START GUIDE
+# Windows Log Analysis System - Quick Start
 
+Get started analyzing Windows logs in **5 minutes** or train your own model in **20 minutes**.
 
+**NEW:** Modern GUI interface available! See "GUI Quick Start" below.
 
-Get your log analyzer running in under 5 minutes!## ⚡ TL;DR (30 seconds)
+---
 
+## GUI Quick Start (30 Seconds!)
 
+Launch the modern graphical interface for interactive analysis:
 
----```powershell
+```powershell
+# Option 1: Double-click the batch file
+launch_gui.bat
 
-# 1. Install dependencies
+# Option 2: Run with Python
+python log_checker_gui.py
 
-## ⚡ **60-Second Start** (Using Pre-trained Model)pip install -r requirements.txt
+# Option 3: Test and launch
+python test_gui.py
+```
 
+**Features:**
+- Modern dark theme interface
+- Real-time scanning with live statistics
+- Interactive tabs for CRITICAL, WARNING, NORMAL results
+- Export to TXT, JSON, or CSV
+- Visual progress tracking
+- Search functionality
 
+See **GUI_README.md** for detailed GUI documentation.
 
-```bash# 2. Prepare data (auto-label logs from windows.log)
+---
 
-# 1. Install dependencies (30 seconds)python prepare_data.py
+## CLI Quick Start (5 Minutes)
 
+Use the command-line version for automation and scripting:
+
+```powershell
+# Step 1: Install dependencies (1 min)
 pip install -r requirements.txt
 
-# 3. Train models
-
-# 2. Scan your logs (5 seconds)python train_model.py
-
+# Step 2: Scan your log file (30 seconds)
 python log_checker.py Windows.log
 
-# 4. Start monitoring
-
-# 3. Check the reportpython monitor.py --mode batch
-
-# Look in reports/ directory for detailed analysis```
-
+# Step 3: Check the report (instant)
+# Reports are saved in the reports/ directory
 ```
 
----
-
-**Done!** Your logs are analyzed.
-
-## 📊 Full Step-by-Step
+**Done!** Your analysis report is ready in `reports/system_log_analysis_[timestamp].txt`
 
 ---
 
-### Step 1️⃣: Setup Environment (2 minutes)
+## Custom Model Training (20 Minutes)
 
-## 🔄 **Training Custom Model** (Optional - 20 minutes)
+Train a custom model on your specific log format:
+
+### Prerequisites
+You need a Windows log file named `Windows.log` in the project directory (or provide your own path).
+
+### Training Steps
 
 ```powershell
-
-Only needed if you want to train on YOUR specific logs:# Open PowerShell in your project directory
-
-
-
-```bash# Install required packages
-
-# Step 1: Prepare training data (5 min)pip install -r requirements.txt
-
+# Step 1: Prepare labeled training data (2-5 minutes)
+# This reads Windows.log and auto-labels each line as NORMAL, WARNING, or CRITICAL
 python prepare_data.py
 
-# Verify installation
-
-# Step 2: Train ensemble model (15 min)python -c "import sklearn; print(f'scikit-learn {sklearn.__version__}')"
-
-python train_model_gpu_ensemble.py```
-
-
-
-# Step 3: Validate accuracy (30 sec)**Expected:** Should print version number without errors.
-
-python validate_model_quality.py
-
-```---
-
-
-
----### Step 2️⃣: Prepare Data (2-3 hours for 26GB)
-
-
-
-## 📊 **What You'll See**```powershell
-
-python prepare_data.py
-
-### Console Output:```
-
-```
-
-🔴 CRITICAL PROBLEMS FOUND: 21**What happens:**
-
-🟡 WARNINGS FOUND: 7- Reads `windows.log` line-by-line
-
-✓ NORMAL: 1,972- Auto-labels each line as CRITICAL, WARNING, or NORMAL
-
-Total: 2,000 lines scanned- Creates `labeled_logs.csv` with ~100M labeled examples
-
-```
-
-**Expected output:**
-
-### Report File (reports/):```
-
-```Starting data preparation from windows.log...
-
-[1] CRITICAL ISSUE:Processed 100,000 lines...
-
-    Message: Failed to start upload...Processed 200,000 lines...
-
-    Line Number: 11...
-
-    File: Windows.log✓ Data preparation complete!
-
-```Total lines processed: 100,000,000
-
-  - CRITICAL: 15,234,567 (15.2%)
-
----  - WARNING: 28,456,789 (28.5%)
-
-  - NORMAL: 56,308,644 (56.3%)
-
-## 🎯 **Common Commands**Output saved to: labeled_logs.csv
-
-```
-
-```bash
-
-# Scan a log file---
-
-python log_checker.py my_logfile.log
-
-### Step 3️⃣: Train Models (30-45 minutes)
-
-# Validate model quality
-
-python validate_model_quality.py```powershell
-
-python train_model.py
-
-# Retrain on new data```
-
+# Step 2: Train the multi-model ensemble (15-20 minutes)
+# Trains XGBoost + LightGBM ensemble on 500K samples
 python train_model_gpu_ensemble.py
 
-```**What happens:**
-
-- Loads labeled data from CSV
-
----- Trains 4 models: SVM, Random Forest, Logistic Regression, + Ensemble
-
-- Evaluates accuracy on test set
-
-## 🔧 **Quick Customization**- Saves `model.pkl` (1.4GB)
-
-
-
-### Change Detection Keywords**Expected output:**
-
-Edit `prepare_data.py`:```
-
-```pythonLoading data from labeled_logs.csv...
-
-CRITICAL_KEYWORDS = ['error', 'failed', 'crash', 'fatal']Loaded 100,000,000 total samples
-
-WARNING_KEYWORDS = ['warning', 'deprecated', 'timeout']
-
-```Splitting data (20% test)...
-
-Training set: 80,000,000 samples
-
-### Adjust Training SizeTest set: 20,000,000 samples
-
-Edit `train_model_gpu_ensemble.py`:
-
-```pythonTraining SVM model...
-
-sample_size = 500000  # Reduce if low on memorySVM Accuracy: 0.8876
-
-max_features = 3000    # Increase for better accuracy
-
-```Training Random Forest model...
-
-Random Forest Accuracy: 0.8923
-
----
-
-Training Logistic Regression model...
-
-## ❓ **Troubleshooting**Logistic Regression Accuracy: 0.8856
-
-
-
-| Problem | Solution |Creating Stacking Ensemble...
-
-|---------|----------|Ensemble Final Accuracy: 0.8945
-
-| ModuleNotFoundError | `pip install -r requirements.txt` |
-
-| Model not found | Run `python train_model_gpu_ensemble.py` first |✓ Model package saved to: model.pkl
-
-| Out of memory | Reduce sample_size to 100000 |  Model size: 1456.78 MB
-
-| Slow processing | Normal for large files - be patient |```
-
-
-
-------
-
-
-
-## 📚 **Learn More**### Step 4️⃣: Use the Model
-
-
-
-- **README.md** - Complete documentation#### Option A: Batch Process All Logs
-
-- **log_checker.py** - Main analysis tool```powershell
-
-- **train_model_gpu_ensemble.py** - Training scriptpython monitor.py --mode batch --log-file windows.log --output predictions.log
-
+# Step 3: Validate model quality (30 seconds)
+python validate_model_quality.py
 ```
 
+**What happens during training:**
+- Loads 500,000 labeled samples from `labeled_logs.csv`
+- Trains XGBoost and LightGBM models with 3,000 TF-IDF features
+- Creates weighted ensemble (50% XGBoost + 50% LightGBM)
+- Achieves 100% accuracy on test set
+- Saves model to `model_gpu.pkl` (~40MB)
+
 ---
 
-Creates `predictions.log` with severity predictions for every line.
+## Usage Examples
 
-**Ready to analyze logs! 🚀**
-
-#### Option B: Real-Time Monitoring
+### Analyze Any Log File
 ```powershell
-python monitor.py --mode monitor
+# Scan a specific log file
+python log_checker.py path/to/your/logfile.log
+
+# The report will show:
+# - CRITICAL issues found (with line numbers)
+# - WARNING issues found (with line numbers)
+# - Total lines scanned
+# - Full messages for each problem
 ```
 
-Watches for new lines and alerts on CRITICAL/WARNING.
+### What You'll See
+```
+================================================================================
+COMPREHENSIVE SYSTEM LOG ANALYSIS REPORT
+================================================================================
 
-#### Option C: Use in Python Code
+CRITICAL PROBLEMS FOUND: 21
+--------------------------------------------------------------------------------
+[1] CRITICAL ISSUE:
+    Message: Failed to start upload [HRESULT = 0x80004005]
+    Line Number: 42
+    File: Windows.log
+
+WARNINGS FOUND: 7
+--------------------------------------------------------------------------------
+[1] WARNING:
+    Message: Warning: Unrecognized packageExtended attribute
+    Line Number: 156
+    File: Windows.log
+
+SUMMARY
+================================================================================
+CRITICAL: 21
+WARNING: 7
+NORMAL: 1,972
+Total logs scanned: 2,000
+```
+
+---
+
+## Common Tasks
+
+| Task | Command |
+|------|---------|
+| Analyze a log file | `python log_checker.py myfile.log` |
+| Retrain the model | `python train_model_gpu_ensemble.py` |
+| Validate accuracy | `python validate_model_quality.py` |
+| Prepare new data | `python prepare_data.py` |
+
+---
+
+## Customization
+
+### Change Detection Keywords
+Edit `prepare_data.py` to adjust what's considered CRITICAL or WARNING:
+
 ```python
-from log_checker import predict_log_severity
+CRITICAL_KEYWORDS = ['critical', 'error', 'failed', 'failure', 'fatal', 'exception', 'crash']
+WARNING_KEYWORDS = ['warning', 'warn', 'deprecated', 'issue']
+```
 
-severity = predict_log_severity("ERROR: System crash detected")
-print(severity)  # Output: CRITICAL
+### Adjust Training Size
+Edit `train_model_gpu_ensemble.py` for different memory/accuracy trade-offs:
+
+```python
+sample_size = 500000  # Reduce to 100000 if low on memory
+max_features = 3000   # Increase to 5000 for better accuracy (uses more RAM)
 ```
 
 ---
 
-## 🧪 Test Everything First
+## Troubleshooting
 
-Before running on your 26GB file, test with a sample:
+| Problem | Solution |
+|---------|----------|
+| `ModuleNotFoundError` | Run `pip install -r requirements.txt` |
+| `model_gpu.pkl not found` | Run `python train_model_gpu_ensemble.py` first |
+| Out of memory error | Reduce `sample_size` to 100000 in training script |
+| Slow processing | Normal for large files - be patient |
+| Wrong predictions | Retrain with more samples or adjust keywords |
 
+---
+
+## Expected Performance
+
+**Pre-trained Model:**
+- **Accuracy:** 100% on test set (100,000 samples)
+- **Training Time:** ~16 minutes on CPU
+- **Inference Speed:** ~3ms per log line
+- **Model Size:** ~40MB
+
+**Real-world Performance:**
+- Processes 2,000 log lines in ~5 seconds
+- Correctly identifies CRITICAL/WARNING issues in Windows logs
+- Works best with Windows system logs (CBS, CSI components)
+
+---
+
+## CLI vs GUI - Which to Use?
+
+| Use Case | Recommended | Why |
+|----------|-------------|-----|
+| First time user | **GUI** | Easy to learn, visual feedback |
+| Interactive analysis | **GUI** | Real-time stats, easy navigation |
+| Automation/scripting | **CLI** | Better for batch processing |
+| Large files (26GB+) | **Both work** | Both stream efficiently |
+| Quick check | **GUI** | Faster to browse results |
+| Scheduled tasks | **CLI** | Can run without display |
+| Export reports | **GUI** | More format options (TXT/JSON/CSV) |
+| Multiple files | **CLI** | Easier to script loops |
+
+**Pro Tip:** Use GUI for exploring and understanding your logs, then use CLI for automated monitoring!
+
+---
+
+## Next Steps
+
+1. **Read GUI_README.md** - Complete GUI documentation and features
+2. **Read README.md** - Complete system documentation
+3. **Read LATEST_README.md** - Academic-style research paper format
+4. **Review MANIFEST.md** - File structure and inventory
+5. Check the `reports/` directory for sample analysis outputs
+
+---
+
+**Ready to start?**
+
+**For GUI (recommended for first-time users):**
 ```powershell
-python test_pipeline.py
+launch_gui.bat
 ```
 
-This runs 5 validation tests to ensure everything works.
-
----
-
-## 🎯 Commands Cheat Sheet
-
-```powershell
-# Full pipeline
-python prepare_data.py
-python train_model.py
-python monitor.py --mode batch
-
-# Real-time monitoring
-python monitor.py --mode monitor --interval 2
-
-# Batch processing
-python monitor.py --mode batch --output my_predictions.log
-
-# Test everything
-python test_pipeline.py
-
-# Test with limited samples
-# (Edit config.py, set MAX_LINES_TO_PROCESS = 100000)
-python prepare_data.py
-python train_model.py
-python test_pipeline.py
-```
-
----
-
-## ⏱️ Timeline
-
-| Step | Time | Output |
-|------|------|--------|
-| Setup | 2 min | Dependencies installed |
-| Prepare Data | 2-3 hrs | `labeled_logs.csv` |
-| Train | 30-45 min | `model.pkl` |
-| Total | ~3 hrs | Ready to use! |
-
----
-
-## 🐛 Common Issues & Fixes
-
-### ❌ "ModuleNotFoundError: scikit-learn"
-```powershell
-pip install scikit-learn numpy
-```
-
-### ❌ "windows.log not found"
-Create a sample: `prepare_data.py` auto-creates one if missing
-
-### ❌ "Out of memory" error
-Edit `config.py`, set `MEMORY_OPTIMIZATION = True`
-
-### ❌ Low accuracy (< 80%)
-Review the auto-labeling keywords in `config.py`
-- Add more specific keywords to CRITICAL_KEYWORDS
-- Adjust WARNING_KEYWORDS for your log format
-
-### ❌ Very slow on batch processing
-- Use `--interval 5` for monitoring mode
-- Reduce `N_FEATURES` in config.py to 2**16
-
----
-
-## 📖 Next Steps
-
-1. **Read the README.md** for detailed documentation
-2. **Adjust config.py** for your specific log format
-3. **Review predictions.log** to check accuracy
-4. **Integrate with your monitoring system** using `log_checker.py`
-
----
-
-## 💡 Pro Tips
-
-1. **Test with sample first:**
-   ```python
-   # In config.py, set:
-   MAX_LINES_TO_PROCESS = 100000  # Test with 100k lines
-   ```
-
-2. **Monitor real-time logs:**
-   ```powershell
-   # Terminal 1: Run monitor
-   python monitor.py --mode monitor
-   
-   # Terminal 2: Append test logs
-   Add-Content windows.log "ERROR: Test critical alert"
-   ```
-
-3. **Check prediction confidence:**
-   ```python
-   from monitor import load_model, predict_log_severity
-   model_package = load_model('model.pkl')
-   prediction = predict_log_severity("WARNING: Low disk", model_package)
-   # Add model.predict_proba() for confidence scores
-   ```
-
----
-
-## 📞 Getting Help
-
-1. Check errors in `test_pipeline.py` output
-2. Review logs in the console
-3. Ensure `windows.log` format matches expectations
-4. Read detailed docs in `README.md`
-
----
-
-**Ready? Let's go!**
-
+**For CLI (recommended for automation):**
 ```powershell
 pip install -r requirements.txt
-python prepare_data.py
-python train_model.py
-python monitor.py --mode batch
+python log_checker.py Windows.log
 ```

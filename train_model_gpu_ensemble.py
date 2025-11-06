@@ -1,7 +1,3 @@
-"""
-GPU-Accelerated Multi-Model Ensemble Training
-Uses XGBoost, LightGBM, and CatBoost with GPU acceleration for maximum accuracy
-"""
 
 import time
 import pickle
@@ -16,29 +12,27 @@ from sklearn.metrics import classification_report, accuracy_score, confusion_mat
 import warnings
 warnings.filterwarnings('ignore')
 
-# GPU-accelerated libraries
 try:
     import xgboost as xgb
     XGBOOST_AVAILABLE = True
 except ImportError:
     XGBOOST_AVAILABLE = False
-    print("⚠ XGBoost not available")
+    print(" XGBoost not available")
 
 try:
     import lightgbm as lgb
     LIGHTGBM_AVAILABLE = True
 except ImportError:
     LIGHTGBM_AVAILABLE = False
-    print("⚠ LightGBM not available")
+    print(" LightGBM not available")
 
 try:
     from catboost import CatBoostClassifier
     CATBOOST_AVAILABLE = True
 except ImportError:
     CATBOOST_AVAILABLE = False
-    print("⚠ CatBoost not available")
+    print(" CatBoost not available")
 
-# Setup logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -49,16 +43,13 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-
 def check_gpu_availability():
-    """Check GPU availability for each library"""
     logger.info("\n" + "=" * 80)
     logger.info("GPU AVAILABILITY CHECK")
     logger.info("=" * 80)
     
     gpu_status = {}
-    
-    # Check XGBoost
+
     if XGBOOST_AVAILABLE:
         try:
             import subprocess
@@ -72,8 +63,7 @@ def check_gpu_availability():
         except:
             gpu_status['xgboost'] = 'cpu'
             logger.info("[WARN] XGBoost: Using CPU")
-    
-    # Check LightGBM
+
     if LIGHTGBM_AVAILABLE:
         try:
             gpu_status['lightgbm'] = 'gpu'
@@ -81,8 +71,7 @@ def check_gpu_availability():
         except:
             gpu_status['lightgbm'] = 'cpu'
             logger.info("[WARN] LightGBM: Using CPU")
-    
-    # Check CatBoost
+
     if CATBOOST_AVAILABLE:
         try:
             gpu_status['catboost'] = 'GPU'
@@ -94,14 +83,11 @@ def check_gpu_availability():
     logger.info("=" * 80 + "\n")
     return gpu_status
 
-
 def load_data_fast(csv_file, sample_size=1000000):
-    """Load training data efficiently using pandas"""
     logger.info(f"Loading data from {csv_file} (max {sample_size:,} samples)...")
     
     start_time = time.time()
-    
-    # Use pandas to properly handle CSV with commas in fields
+
     df = pd.read_csv(csv_file, nrows=sample_size, encoding='utf-8-sig')
     
     data = df['log_line'].tolist()
@@ -112,9 +98,7 @@ def load_data_fast(csv_file, sample_size=1000000):
     
     return data, labels
 
-
 def extract_features_tfidf(X_train, X_test, max_features=10000):
-    """Extract TF-IDF features (better for gradient boosting models)"""
     logger.info(f"Extracting TF-IDF features ({max_features:,} dimensions, bigrams)...")
     
     start_time = time.time()
@@ -137,20 +121,17 @@ def extract_features_tfidf(X_train, X_test, max_features=10000):
     
     return X_train_features, X_test_features, vectorizer
 
-
 def train_xgboost_gpu(X_train, y_train, X_test, y_test, gpu_status):
-    """Train XGBoost with GPU/CPU"""
     logger.info("Training XGBoost model...")
     logger.info("-" * 80)
     
     start_time = time.time()
-    
-    # Use hist (CPU) since GPU not properly configured
+
     tree_method = 'hist'
     
     model = xgb.XGBClassifier(
         tree_method=tree_method,
-        n_estimators=300,  # Reduced for speed
+        n_estimators=300,
         max_depth=6,
         learning_rate=0.1,
         subsample=0.8,
@@ -173,20 +154,17 @@ def train_xgboost_gpu(X_train, y_train, X_test, y_test, gpu_status):
     
     return model
 
-
 def train_lightgbm_gpu(X_train, y_train, X_test, y_test, gpu_status):
-    """Train LightGBM"""
     logger.info("Training LightGBM model...")
     logger.info("-" * 80)
     
     start_time = time.time()
-    
-    # Use CPU
+
     device = 'cpu'
     
     model = lgb.LGBMClassifier(
         device=device,
-        n_estimators=300,  # Reduced for speed
+        n_estimators=300,
         max_depth=6,
         learning_rate=0.1,
         num_leaves=31,
@@ -210,15 +188,12 @@ def train_lightgbm_gpu(X_train, y_train, X_test, y_test, gpu_status):
     
     return model
 
-
 def train_catboost_gpu(X_train, y_train, X_test, y_test, gpu_status):
-    """Train CatBoost with GPU acceleration"""
     logger.info("Training CatBoost model (GPU-accelerated)...")
     logger.info("-" * 80)
     
     start_time = time.time()
-    
-    # Determine device
+
     task_type = gpu_status.get('catboost', 'CPU')
     
     model = CatBoostClassifier(
@@ -243,13 +218,10 @@ def train_catboost_gpu(X_train, y_train, X_test, y_test, gpu_status):
     
     return model
 
-
 def create_weighted_ensemble(models, model_names, X_test, y_test):
-    """Create weighted ensemble based on individual model performance"""
     logger.info("Creating weighted ensemble...")
     logger.info("-" * 80)
-    
-    # Calculate weights based on accuracy
+
     accuracies = []
     predictions_list = []
     
@@ -259,16 +231,14 @@ def create_weighted_ensemble(models, model_names, X_test, y_test):
         accuracies.append(acc)
         predictions_list.append(pred)
         logger.info(f"  {name}: {acc*100:.2f}% accuracy")
-    
-    # Normalize weights
+
     total_acc = sum(accuracies)
     weights = [acc / total_acc for acc in accuracies]
     
     logger.info("\nEnsemble weights:")
     for name, weight in zip(model_names, weights):
         logger.info(f"  {name}: {weight*100:.1f}%")
-    
-    # Weighted voting
+
     ensemble_pred = np.zeros((len(y_test), 3))
     for pred, weight in zip(predictions_list, weights):
         for i, p in enumerate(pred):
@@ -288,20 +258,16 @@ def create_weighted_ensemble(models, model_names, X_test, y_test):
     
     return ensemble, final_pred
 
-
 def train_gpu_ensemble():
-    """Main GPU ensemble training pipeline"""
     logger.info("=" * 80)
     logger.info("GPU-ACCELERATED MULTI-MODEL ENSEMBLE TRAINING")
     logger.info("=" * 80)
     logger.info(f"Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
     
     pipeline_start = time.time()
-    
-    # Check GPU availability
+
     gpu_status = check_gpu_availability()
-    
-    # Step 1: Load data (reduced to 500K to fit in memory)
+
     logger.info("Step 1: Loading data (500K samples for memory efficiency)...")
     logger.info("-" * 80)
     X, y = load_data_fast('labeled_logs.csv', sample_size=500000)
@@ -309,8 +275,7 @@ def train_gpu_ensemble():
     label_map = {'NORMAL': 0, 'WARNING': 1, 'CRITICAL': 2}
     reverse_map = {v: k for k, v in label_map.items()}
     y_encoded = np.array([label_map[label] for label in y])
-    
-    # Step 2: Split data
+
     logger.info("Step 2: Splitting data (80/20)...")
     logger.info("-" * 80)
     X_train, X_test, y_train, y_test = train_test_split(
@@ -321,23 +286,21 @@ def train_gpu_ensemble():
     
     del X
     gc.collect()
-    
-    # Step 3: Extract features
+
     logger.info("Step 3: Extracting TF-IDF features...")
     logger.info("-" * 80)
     X_train_features, X_test_features, vectorizer = extract_features_tfidf(
-        X_train, X_test, max_features=3000  # Reduced for memory
+        X_train, X_test, max_features=3000
     )
-    
-    # Convert to dense in smaller batches
+
     logger.info("Converting to dense arrays (batch processing)...")
     
-    batch_size = 50000  # Smaller batches
+    batch_size = 50000
     X_train_dense_list = []
     
     for i in range(0, X_train_features.shape[0], batch_size):
         try:
-            batch = X_train_features[i:i+batch_size].toarray().astype(np.float32)  # Use float32 instead of float64
+            batch = X_train_features[i:i+batch_size].toarray().astype(np.float32)
             X_train_dense_list.append(batch)
             logger.info(f"  Converted {min(i+batch_size, X_train_features.shape[0]):,}/{X_train_features.shape[0]:,} training samples")
             del batch
@@ -359,8 +322,7 @@ def train_gpu_ensemble():
     
     del X_train, X_test
     gc.collect()
-    
-    # Step 4: Train individual models
+
     logger.info("Step 4: Training individual models...")
     logger.info("=" * 80)
     
@@ -385,13 +347,11 @@ def train_gpu_ensemble():
     if not models:
         logger.error("[ERROR] No GPU models available! Please install xgboost, lightgbm, or catboost")
         return
-    
-    # Step 5: Create ensemble
+
     logger.info("Step 5: Creating weighted ensemble...")
     logger.info("=" * 80)
     ensemble, ensemble_pred = create_weighted_ensemble(models, model_names, X_test_dense, y_test)
-    
-    # Step 6: Detailed evaluation
+
     logger.info("\nStep 6: Detailed Evaluation")
     logger.info("=" * 80)
     
@@ -402,8 +362,7 @@ def train_gpu_ensemble():
     logger.info("\nConfusion Matrix:")
     cm = confusion_matrix(y_test, ensemble_pred)
     logger.info(f"\n{cm}")
-    
-    # Step 7: Save model
+
     logger.info("\nStep 7: Saving model...")
     logger.info("-" * 80)
     
@@ -430,7 +389,6 @@ def train_gpu_ensemble():
     logger.info(f"Models in ensemble: {', '.join(model_names)}")
     logger.info(f"Completed: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     logger.info("=" * 80)
-
 
 if __name__ == '__main__':
     train_gpu_ensemble()
