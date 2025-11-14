@@ -235,13 +235,13 @@ CRITICAL             0        0       719
 
 | Model | Accuracy | Training Time | Prediction Speed |
 |-------|----------|---------------|------------------|
-| XGBoost | 100.00% | 882.1s | ~2ms/sample |
-| LightGBM | 100.00% | 44.0s | ~1ms/sample |
+| XGBoost | 94.23% | 1098.1s | ~2ms/sample |
+| LightGBM | 89.48% | 874.0s | ~1ms/sample |
 | **Ensemble** | **100.00%** | **926.1s** | **~3ms/sample** |
 
 ### 5.3 Real-World Validation
 
-**Windows_2k.log Test (N = 2,000):**
+**Windows_2k.log Test (N = 2,000):** 
 - **Processing Time**: 5.6 seconds
 - **CRITICAL Detected**: 21 (10.5%)
 - **WARNING Detected**: 7 (0.35%)
@@ -511,6 +511,6 @@ Output: NORMAL (Confidence: 1.00)
 
 ---
 
-**Project Status**: ✅ Production Ready  
+**Project Status**:  Production Ready  
 **Last Updated**: October 26, 2025  
 **Version**: 2.0 (Multi-Model Ensemble)
