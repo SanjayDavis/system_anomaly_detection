@@ -67,34 +67,34 @@ Our approach differs by:
 │                                                 │
 │  Input: Raw Windows Log File                    │
 │           ↓                                     │
-│  ┌──────────────────────────────┐              │
-│  │  Data Preparation Module     │              │
-│  │  - Streaming processing      │              │
-│  │  - Auto-labeling             │              │
-│  │  - CSV generation            │              │
-│  └──────────┬───────────────────┘              │
+│  ┌──────────────────────────────┐               │
+│  │  Data Preparation Module     │               │
+│  │  - Streaming processing      │               │
+│  │  - Auto-labeling             │               │
+│  │  - CSV generation            │               │
+│  └──────────┬───────────────────┘               │
 │             ↓                                   │
-│  ┌──────────────────────────────┐              │
-│  │  Feature Extraction Module   │              │
-│  │  - TF-IDF vectorization      │              │
-│  │  - 3,000 dimensions          │              │
-│  │  - Bigram features           │              │
-│  └──────────┬───────────────────┘              │
+│  ┌──────────────────────────────┐               │
+│  │  Feature Extraction Module   │               │
+│  │  - TF-IDF vectorization      │               │
+│  │  - 3,000 dimensions          │               │
+│  │  - Bigram features           │               │
+│  └──────────┬───────────────────┘               │
 │             ↓                                   │
-│  ┌──────────┴───────────┐                      │
-│  │                      │                      │
-│  ↓                      ↓                      │
-│  ┌──────────┐    ┌──────────┐                 │
-│  │ XGBoost  │    │ LightGBM │                 │
-│  │ Learner  │    │ Learner  │                 │
-│  └────┬─────┘    └─────┬────┘                 │
-│       └────────┬────────┘                      │
+│  ┌──────────┴───────────┐                       │
+│  │                      │                       │
+│  ↓                      ↓                       │
+│  ┌──────────┐    ┌──────────┐                   │
+│  │ XGBoost  │    │ LightGBM │                   │
+│  │ Learner  │    │ Learner  │                   │
+│  └────┬─────┘    └─────┬────┘                   │
+│       └────────┬────────┘                       │
 │                ↓                                │
-│     Weighted Voting Ensemble                   │
-│           (α=0.5, β=0.5)                       │
+│     Weighted Voting Ensemble                    │
+│           (α=0.5, β=0.5)                        │
 │                ↓                                │
-│  Output: Severity Classification               │
-│  (NORMAL / WARNING / CRITICAL)                 │
+│  Output: Severity Classification                │
+│  (NORMAL / WARNING / CRITICAL)                  │
 │                                                 │
 └─────────────────────────────────────────────────┘
 ```
