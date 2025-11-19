@@ -17,7 +17,7 @@ We present a multi-model ensemble system for automated severity classification o
 
 ## 1. Introduction
 
-The log files are taken from 
+Note : The log files are taken from 
 ```
 https://github.com/logpai/loghub
 ```
